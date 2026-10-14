@@ -9,153 +9,211 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a vertical stack of full-height slides with scroll-snap; arrow keys / space step between them. */
+/* Layout: full-height slides with scroll-snap. One recurring "system map" (SVG) lights a different path per slide;
+   → / space step through builds, then move to the next slide. Dark by default (brand), light via toggle. */
 :root {
-  --bg: #F2FAFF; --bg2: #E5F4FF; --card-fill: #E5F4FF; --line: #99D3FF; --line-strong: #40668D;
-  --fg: #030710; --fg2: #161F34; --muted: #2F4B68; --accent: #006DDD; --accent-soft: #CCE9FF; --chip: #CCE9FF;
-  --good: #6E8900;
+  --bg: #F2FAFF; --bg2: #E5F4FF; --card: #E5F4FF; --line: #99D3FF; --line2: #40668D;
+  --fg: #030710; --fg2: #161F34; --fg3: #2F4B68; --accent: #006DDD; --accent2: #1A5EAA;
+  --node: #F2FAFF; --node-dim: #E5F4FF; --edge: #99D3FF; --ok: #6E8900; --no: #634643;
   --sans: "Inter", "Helvetica Neue", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #030710; --bg2: #0D1322; --card-fill: #0D1322; --line: #2F4B68; --line-strong: #40668D;
-    --fg: #F2FAFF; --fg2: #B2DEFF; --muted: #99D3FF; --accent: #7FC8FF; --accent-soft: #161F34; --chip: #161F34;
-    --good: #E3FF8F; color-scheme: dark;
+    --bg: #030710; --bg2: #0D1322; --card: #0D1322; --line: #2F4B68; --line2: #40668D;
+    --fg: #F2FAFF; --fg2: #B2DEFF; --fg3: #99D3FF; --accent: #7FC8FF; --accent2: #5BADDF;
+    --node: #0D1322; --node-dim: #030710; --edge: #2F4B68; --ok: #E3FF8F; --no: #FBB0A5; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #030710; --bg2: #0D1322; --card-fill: #0D1322; --line: #2F4B68; --line-strong: #40668D;
-  --fg: #F2FAFF; --fg2: #B2DEFF; --muted: #99D3FF; --accent: #7FC8FF; --accent-soft: #161F34; --chip: #161F34;
-  --good: #E3FF8F; color-scheme: dark;
+  --bg: #030710; --bg2: #0D1322; --card: #0D1322; --line: #2F4B68; --line2: #40668D;
+  --fg: #F2FAFF; --fg2: #B2DEFF; --fg3: #99D3FF; --accent: #7FC8FF; --accent2: #5BADDF;
+  --node: #0D1322; --node-dim: #030710; --edge: #2F4B68; --ok: #E3FF8F; --no: #FBB0A5; color-scheme: dark;
 }
 
-html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+html { scroll-snap-type: y mandatory; }
 body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-weight: 300; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
 .slide {
-  scroll-snap-align: start;
-  min-height: 100svh;
-  box-sizing: border-box;
-  padding: clamp(28px, 5vw, 72px) clamp(16px, 6vw, 96px);
-  display: flex; flex-direction: column; justify-content: center; gap: clamp(18px, 2.6vw, 32px);
-  border-bottom: 1px solid var(--line);
-  position: relative;
+  scroll-snap-align: start; min-height: 100svh; box-sizing: border-box;
+  padding-block: clamp(32px, 6vh, 72px); padding-inline: clamp(16px, 6vw, 96px);
+  display: flex; flex-direction: column; justify-content: center; gap: clamp(16px, 2.4vh, 28px);
+  border-bottom: 1px solid var(--line); position: relative;
 }
-.slide > * { max-width: 1180px; width: 100%; margin-inline: auto; }
-.eyebrow { font-family: var(--mono); font-size: 13px; letter-spacing: 0.04em; color: var(--accent); text-transform: lowercase; }
-h1, h2 { font-weight: 300; letter-spacing: -0.02em; line-height: 1.05; margin: 0; text-wrap: balance; }
-h1 { font-size: clamp(38px, 6.4vw, 84px); }
-h2 { font-size: clamp(28px, 4vw, 52px); }
-.lede { font-size: clamp(17px, 1.7vw, 22px); line-height: 1.4; color: var(--fg2); max-width: 62ch; margin: 0; }
+.slide > * { width: 100%; max-width: 1200px; margin-inline: auto; }
+.eyebrow { font-family: var(--mono); font-weight: 400; font-size: 13px; color: var(--accent); letter-spacing: 0.02em; margin: 0; }
+h1, h2 { font-weight: 300; letter-spacing: -0.02em; line-height: 1.04; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(44px, 7.5vw, 104px); }
+h2 { font-size: clamp(30px, 3.8vw, 52px); }
 p { margin: 0; }
+.lede { font-size: clamp(17px, 1.6vw, 21px); line-height: 1.4; color: var(--fg2); max-width: 64ch; }
 code, .mono { font-family: var(--mono); font-weight: 400; }
-.small { font-size: 14px; line-height: 1.45; color: var(--fg2); }
-.meta { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.note { font-family: var(--mono); font-size: 13px; color: var(--fg3); }
+.tag { font-family: var(--mono); font-size: 12px; color: var(--accent); border: 1px solid var(--accent); border-radius: 100px; padding: 2px 10px; white-space: nowrap; }
 
-.grid { display: grid; gap: clamp(12px, 1.6vw, 20px); }
-.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (max-width: 820px) { .cols-3, .cols-2 { grid-template-columns: 1fr; } }
+/* Builds: pending items stay faintly visible so the slide is never empty */
+[data-at] { transition: opacity 320ms var(--ease-out), transform 320ms var(--ease-out); }
+.pending { opacity: 0.18; transform: translateY(6px); }
+@media (prefers-reduced-motion: reduce) { [data-at] { transition: opacity 120ms linear; } .pending { transform: none; } }
 
-.card { background: var(--card-fill); border: 1px solid var(--line); border-radius: 10px; padding: clamp(16px, 1.8vw, 24px); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.card h3 { font-weight: 400; font-size: clamp(18px, 1.6vw, 22px); margin: 0; color: var(--accent); letter-spacing: -0.01em; }
-.card p { font-size: 16px; line-height: 1.45; color: var(--fg2); }
-.chip { font-family: var(--mono); font-size: 13px; background: var(--chip); border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; color: var(--fg); white-space: nowrap; display: inline-block; }
-.callout { border-left: 2px solid var(--accent); padding: 4px 0 4px 18px; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.45; color: var(--fg2); }
-.callout strong { color: var(--fg); font-weight: 600; }
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: clamp(14px, 1.6vw, 22px); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card h3 { margin: 0; font-weight: 400; font-size: clamp(17px, 1.5vw, 20px); color: var(--accent); letter-spacing: -0.01em; }
+.card p { font-size: 15.5px; line-height: 1.45; color: var(--fg2); }
+.row { display: grid; gap: clamp(10px, 1.4vw, 18px); }
+.r2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.r3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.r4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.r5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 900px) { .r3, .r4, .r5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .r2, .r3, .r4, .r5 { grid-template-columns: 1fr; } }
 
-/* Title slide */
-.title-slide { justify-content: flex-end; padding-bottom: clamp(48px, 10vh, 120px); }
-.title-slide h1 { font-size: clamp(44px, 8vw, 112px); }
-.flow-line { height: 2px; background: linear-gradient(90deg, #030710, #006DDD 45%, #7FC8FF); border-radius: 2px; max-width: 520px !important; margin-left: 0 !important; }
+/* Step captions under a map (a real sequence, so numbered) */
+.steps { display: grid; gap: 10px; }
+.step { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+.step .n { font-family: var(--mono); font-size: 13px; color: var(--accent); border: 1px solid var(--accent); border-radius: 100px; width: 26px; height: 26px; display: grid; place-items: center; }
+.step b { display: block; font-weight: 400; font-size: 16px; color: var(--fg); }
+.step span { font-size: 14.5px; line-height: 1.4; color: var(--fg2); }
+.step code { font-size: 13px; color: var(--fg); }
 
-/* Building blocks */
-.stack { display: flex; flex-direction: column; gap: 8px; }
-.layer { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 14px 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--card-fill); }
-.layer .name { font-weight: 400; font-size: 19px; color: var(--fg); }
-.layer .desc { font-size: 16px; color: var(--fg2); line-height: 1.4; }
-@media (max-width: 820px) { .layer { grid-template-columns: 1fr; gap: 6px; } }
+/* System map */
+.mapwrap { overflow-x: auto; }
+.map { display: block; width: 100%; min-width: 640px; height: auto; font-family: var(--sans); }
+.map .box { fill: none; stroke: var(--line); stroke-width: 1; }
+.map .box.dash { stroke-dasharray: 4 5; }
+.map .boxlbl { font-family: var(--mono); font-size: 12.5px; fill: var(--fg3); }
+.map .nd rect { fill: var(--node); stroke: var(--line2); stroke-width: 1; transition: stroke 300ms var(--ease-out), fill 300ms var(--ease-out); }
+.map .nd .t { font-size: 15px; font-weight: 400; fill: var(--fg); }
+.map .nd .s { font-family: var(--mono); font-size: 11.5px; fill: var(--fg3); }
+.map.has-path .nd.off rect { fill: var(--node-dim); stroke: var(--line); }
+.map.has-path .nd.off .t { fill: var(--fg3); }
+.map .nd.lit rect { stroke: var(--accent); stroke-width: 1.5; }
+.map .e path { fill: none; stroke: var(--edge); stroke-width: 2; transition: stroke 300ms var(--ease-out); }
+.map .e circle, .map .e polygon { fill: var(--edge); transition: fill 300ms var(--ease-out); }
+.map .e.lit path { stroke: var(--accent); stroke-width: 2.5; }
+.map .e.lit circle, .map .e.lit polygon { fill: var(--accent); }
+.map .badge circle { fill: var(--bg); stroke: var(--accent); stroke-width: 1.5; }
+.map .badge text { font-family: var(--mono); font-size: 12px; fill: var(--accent); }
+.map .badge { transition: opacity 300ms var(--ease-out); }
+.map .badge.pending { opacity: 0; }
+.map .lane { stroke: var(--line); stroke-dasharray: 3 6; }
+.map .msg path { stroke: var(--edge); stroke-width: 2; fill: none; }
+.map .msg polygon { fill: var(--edge); }
+.map .msg text, .map .seplbl { paint-order: stroke; stroke: var(--bg); stroke-width: 6px; stroke-linejoin: round; }
+.map .msg text { font-size: 13.5px; fill: var(--fg2); }
+.map .msg.lit path { stroke: var(--accent); }
+.map .msg.lit polygon { fill: var(--accent); }
+.map .msg.lit text { fill: var(--fg); }
+.map .lanehd rect { fill: var(--card); stroke: var(--line2); }
+.map .lanehd text { font-size: 14px; font-weight: 400; fill: var(--fg); }
+.map .sep { stroke: var(--line2); stroke-dasharray: 2 4; }
+.map .seplbl { font-family: var(--mono); font-size: 12px; fill: var(--accent); }
 
-/* Architecture */
-.arch { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
-.tier { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
-.tier > .card { flex: 1 1 260px; }
-.connector { display: flex; flex-direction: column; align-items: center; padding: 6px 0; }
-.connector .bar { width: 2px; height: 22px; background: linear-gradient(#006DDD, #7FC8FF); }
-.connector .label { font-family: var(--mono); font-size: 13px; color: var(--muted); text-align: center; padding: 4px 10px; }
-.server { border: 1px solid var(--accent); border-radius: 12px; padding: 18px; background: var(--card-fill); display: flex; flex-direction: column; gap: 12px; }
-.server .hd { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: baseline; }
-.server .hd span:first-child { font-family: var(--mono); color: var(--accent); font-size: 15px; }
-.tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 820px) { .tools { grid-template-columns: 1fr; } }
-.tool { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; background: var(--bg); min-width: 0; }
-.tool .n { font-family: var(--mono); font-size: 15px; color: var(--fg); }
-.tool .t { font-family: var(--mono); font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
-.tool .pat { font-size: 13px; color: var(--accent); font-weight: 400; }
-.chain { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.chain .node { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: var(--card-fill); text-align: center; min-width: 0; }
-.chain .node b { display: block; font-weight: 400; font-size: 16px; }
-.chain .node span { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
-.arrow { color: var(--accent); font-family: var(--mono); font-size: 18px; }
+/* Title */
+.title-slide { justify-content: flex-end; padding-bottom: clamp(48px, 12vh, 140px); }
+.flow-line { height: 2px; max-width: 560px !important; margin-left: 0 !important; background: linear-gradient(90deg, #030710, #006DDD 40%, #7FC8FF); border-radius: 2px; }
 
-/* Demo steps (an actual sequence, so numbered) */
-.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; counter-reset: s; }
-.steps li { counter-increment: s; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; align-items: start; padding: 18px 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--card-fill); }
-.steps li::before { content: counter(s); font-family: var(--mono); font-size: 15px; color: var(--accent); border: 1px solid var(--accent); border-radius: 100px; width: 32px; height: 32px; display: grid; place-items: center; }
-.steps .q { font-size: clamp(18px, 1.7vw, 22px); font-weight: 400; }
-.steps .exp { font-size: 15px; color: var(--fg2); margin-top: 4px; }
+/* Hook: chat */
+.hook { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); align-items: center; }
+@media (max-width: 900px) { .hook { grid-template-columns: 1fr; } }
+.chat { border: 1px solid var(--line); border-radius: 12px; background: var(--bg2); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.chat .who { font-family: var(--mono); font-size: 12px; color: var(--fg3); margin-bottom: 4px; }
+.bubble { border-radius: 10px; padding: 12px 14px; font-size: 16px; line-height: 1.45; }
+.bubble.user { align-self: flex-end; background: var(--card); border: 1px solid var(--line2); max-width: 85%; }
+.bubble.bot { border: 1px solid var(--line); background: var(--bg); }
+.bubble.bot table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 15px; }
+.bubble.bot td { padding: 5px 0; border-bottom: 1px solid var(--line); }
+.bubble.bot td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 14px; }
+.bubble.bot tr:last-child td { border-bottom: 0; }
+.qs { display: flex; flex-direction: column; gap: 14px; }
+.qs div { padding-left: 16px; border-left: 2px solid var(--line); }
+.qs b { display: block; font-weight: 400; font-size: clamp(18px, 1.7vw, 22px); }
+.qs span { font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
 
-/* Comparison table */
-.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
-table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 16px; }
-th, td { text-align: left; padding: 12px 18px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.4; }
-tr:last-child td { border-bottom: 0; }
-thead th { font-weight: 400; font-size: 20px; color: var(--accent); background: var(--card-fill); }
-thead th:first-child { font-family: var(--mono); font-size: 13px; color: var(--muted); }
-tbody th { font-family: var(--mono); font-weight: 400; font-size: 13px; color: var(--muted); white-space: nowrap; width: 18%; }
-td { color: var(--fg2); }
-td strong { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
-.foot { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+/* Semantic layer */
+.sem { display: grid; grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1.15fr); gap: 0; align-items: stretch; }
+@media (max-width: 900px) { .sem { grid-template-columns: 1fr; } .sem .arrowcol { transform: rotate(90deg); height: 40px; } }
+.arrowcol { display: grid; place-items: center; color: var(--accent); font-family: var(--mono); font-size: 22px; }
+.cols { font-family: var(--mono); font-size: 14px; line-height: 2; color: var(--fg2); }
+.cols .tbl { color: var(--fg3); }
+.defs { display: flex; flex-direction: column; gap: 8px; }
+.def { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr); gap: 12px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); align-items: baseline; }
+.def b { font-weight: 400; font-size: 16px; }
+.def code { font-size: 12.5px; color: var(--fg2); overflow-wrap: anywhere; }
+.def i { font-style: normal; font-family: var(--mono); font-size: 12px; color: var(--accent); grid-column: 1 / -1; }
+.story { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .story { grid-template-columns: 1fr; } }
+.story .card .num { font-family: var(--mono); font-size: 22px; font-variant-numeric: tabular-nums; color: var(--fg); }
+
+/* Compare bars */
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.bar-row { display: grid; grid-template-columns: 120px minmax(0, 1fr) 96px; gap: 12px; align-items: center; }
+.bar-row .lbl { font-family: var(--mono); font-size: 13px; color: var(--fg2); }
+.bar-row .val { font-family: var(--mono); font-size: 14px; color: var(--fg); text-align: right; font-variant-numeric: tabular-nums; }
+.track { height: 18px; display: flex; gap: 2px; }
+.seg { height: 100%; border-radius: 3px; background: var(--accent); }
+.seg.b2 { background: var(--accent2); }
+.axis { display: grid; grid-template-columns: 120px minmax(0, 1fr) 96px; gap: 12px; }
+.axis span { font-family: var(--mono); font-size: 11.5px; color: var(--fg3); }
+.cmp th, .cmp td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 15px; line-height: 1.4; }
+.cmp { border-collapse: collapse; width: 100%; min-width: 560px; }
+.cmp thead th { font-weight: 400; color: var(--accent); font-size: 16px; }
+.cmp tbody th { font-family: var(--mono); font-weight: 400; font-size: 12.5px; color: var(--fg3); white-space: nowrap; width: 16%; }
+.cmp td { color: var(--fg2); }
+.cmp tr:last-child td, .cmp tr:last-child th { border-bottom: 0; }
+
+/* Roles */
+.gates { display: grid; grid-template-columns: 1fr 24px 1fr 24px 1fr 24px 0.7fr; align-items: stretch; }
+.gates .chev { display: grid; place-items: center; color: var(--accent); font-family: var(--mono); }
+@media (max-width: 900px) { .gates { grid-template-columns: 1fr; } .gates .chev { transform: rotate(90deg); height: 24px; } }
+.gate .k { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+.gate code { font-size: 12.5px; color: var(--fg); }
+.users { width: 100%; border-collapse: collapse; min-width: 560px; }
+.users th, .users td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; font-size: 15px; }
+.users thead th { font-family: var(--mono); font-weight: 400; font-size: 12.5px; color: var(--fg3); }
+.users td code { font-size: 13px; }
+.ok { color: var(--ok); font-family: var(--mono); font-size: 13px; }
+.no { color: var(--no); font-family: var(--mono); font-size: 13px; }
+
+/* Scaling */
+.routes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 20px); }
+@media (max-width: 900px) { .routes { grid-template-columns: 1fr; } }
+.route { border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.route .hd { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.route .hd h3 { margin: 0; font-weight: 300; font-size: clamp(22px, 2vw, 28px); letter-spacing: -0.02em; }
+.stack { display: flex; flex-direction: column; align-items: stretch; }
+.lvl { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--card); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.lvl.srv { border-color: var(--accent); }
+.lvl .k { font-family: var(--mono); font-size: 12px; color: var(--fg3); width: 100%; }
+.pill { font-family: var(--mono); font-size: 12.5px; border: 1px solid var(--line2); border-radius: 4px; padding: 2px 8px; background: var(--bg); color: var(--fg); white-space: nowrap; }
+.vline { width: 2px; height: 14px; margin: 0 auto; background: linear-gradient(#006DDD, #7FC8FF); }
+.route p { font-size: 14.5px; line-height: 1.45; color: var(--fg2); }
+
+/* Setup */
+.setup .card .n { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+.verdict { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 700px) { .verdict { grid-template-columns: 1fr; } }
+.verdict div { border-left: 2px solid var(--accent); padding: 4px 0 4px 16px; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.45; color: var(--fg2); }
+.verdict b { color: var(--fg); font-weight: 600; }
 
 
-/* Scaling slide: two routing options side by side */
-.routers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 20px); }
-@media (max-width: 900px) { .routers { grid-template-columns: 1fr; } }
-.router { border: 1px solid var(--line); border-radius: 12px; padding: clamp(14px, 1.6vw, 20px); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.router-hd { display: flex; align-items: baseline; gap: 12px; }
-.router-hd h3 { margin: 0; font-weight: 300; font-size: clamp(22px, 2vw, 28px); letter-spacing: -0.02em; }
-.pat-tag { font-family: var(--mono); font-size: 12.5px; color: var(--accent); border: 1px solid var(--accent); border-radius: 100px; padding: 2px 10px; white-space: nowrap; }
-.rflow { display: flex; flex-direction: column; align-items: stretch; }
-.rnode { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--card-fill); font-weight: 400; font-size: 16px; display: flex; flex-direction: column; gap: 2px; }
-.rnode span { font-family: var(--mono); font-weight: 400; font-size: 12.5px; color: var(--muted); }
-.rnode.fleet { align-self: center; text-align: center; min-width: 60%; }
-.rnode.inner { border-color: var(--accent); }
-.rdown { width: 2px; height: 18px; margin: 0 auto; background: linear-gradient(#006DDD, #7FC8FF); }
-.rbox { border: 1px solid var(--accent); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--card-fill); }
-.rbox-lbl { font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
-.rtools { display: flex; flex-wrap: wrap; gap: 6px; }
-.rnote { font-size: 14px; line-height: 1.45; color: var(--fg2); }
-#s7 .card p { font-size: 15px; }
-#s7 .lede { font-size: clamp(16px, 1.45vw, 19px); }
+/* Step-by-step explanation (one caption visible at a time) */
+.explain { display: grid; }
+.explain .cap { grid-area: 1 / 1; border-left: 2px solid var(--accent); padding: 4px 0 4px 18px; transition: opacity 260ms var(--ease-out), transform 260ms var(--ease-out); }
+.explain .cap .k { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+.explain .cap p { font-size: clamp(16px, 1.45vw, 19px); line-height: 1.45; color: var(--fg2); max-width: 80ch; margin-top: 4px; }
+.explain .cap.hide { opacity: 0; transform: translateY(6px); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .explain .cap { transition: opacity 120ms linear; } .explain .cap.hide { transform: none; } }
 
-/* Auth */
-.handshake { display: grid; grid-template-columns: minmax(0,1fr) 40px minmax(0,1fr) 40px minmax(0,1fr); align-items: stretch; }
-.handshake .swap { display: grid; place-items: center; color: var(--accent); font-family: var(--mono); font-size: 20px; }
-@media (max-width: 900px) { .handshake { grid-template-columns: 1fr; } .handshake .swap { transform: rotate(90deg); padding: 4px 0; } }
-.kv { display: flex; flex-direction: column; gap: 6px; font-size: 14.5px; color: var(--fg2); }
-.kv div { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
-.kv code { font-size: 13px; color: var(--fg); }
-
-/* Chrome */
-.hud { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; align-items: center; z-index: 10; }
+/* HUD */
+.hud { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 6px; z-index: 10; }
 .hud button, .hud span { font-family: var(--mono); font-size: 13px; color: var(--fg2); background: var(--bg2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
-.hud button { cursor: pointer; }
-.hud button:hover { color: var(--fg); border-color: var(--accent); }
+.hud button { cursor: pointer; transition: transform 160ms var(--ease-out), border-color 160ms ease; }
+.hud button:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .hud button:hover { border-color: var(--accent); color: var(--fg); } }
 .hud button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .hud span { font-variant-numeric: tabular-nums; }
-.pageno { position: absolute; left: clamp(16px, 6vw, 96px); bottom: 18px; font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: none !important; width: auto !important; margin: 0 !important; }
 </style>
 </head>
 <body>
@@ -163,255 +221,457 @@ td strong { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nu
 <main id="deck">
 
 <!-- 1 -->
-<section class="slide title-slide" id="s1">
-  <p class="eyebrow">langsmith fleet × snowflake cortex</p>
+<section class="slide title-slide">
+  <p class="eyebrow">langsmith fleet × snowflake</p>
   <h1>Querying Snowflake<br>from LangSmith Fleet</h1>
   <div class="flow-line" aria-hidden="true"></div>
-  <p class="lede">Two patterns over Snowflake's managed MCP server, with per-user OAuth.</p>
-  <p class="meta">Live demo on TPC-H sample data · press → or space to advance</p>
+  <p class="lede">How a Fleet agent reaches governed Snowflake data through a managed MCP server, and how each person's identity and roles carry across both systems.</p>
+  <p class="note">Live demo on TPC-H sample data · → or space to advance</p>
 </section>
 
 <!-- 2 -->
-<section class="slide" id="s2">
-  <p class="eyebrow">the ask</p>
-  <h2>How do Fleet agents get answers<br>from Snowflake data?</h2>
-  <div class="grid cols-3">
-    <div class="card"><h3>Governed metrics</h3><p>"Revenue" means the same thing in every answer, no matter which agent asks.</p></div>
-    <div class="card"><h3>Per-user access</h3><p>Each person queries as themselves, under the Snowflake roles they already have.</p></div>
-    <div class="card"><h3>Traceable</h3><p>See what was asked, which SQL ran and what came back, in LangSmith.</p></div>
+<section class="slide" data-steps="1">
+  <p class="eyebrow">start with the answer</p>
+  <div class="hook">
+    <div class="chat" aria-label="Fleet chat example">
+      <div><p class="who">you · in LangSmith Fleet</p><div class="bubble user">What was total revenue by region in 1995?</div></div>
+      <div><p class="who">Snowflake agent</p>
+        <div class="bubble bot">Europe led 1995 revenue at $6.70B; all five regions were within about 2% of each other.
+          <table>
+            <tr><td>Europe</td><td>$6,701,964,431</td></tr>
+            <tr><td>Asia</td><td>$6,664,790,148</td></tr>
+            <tr><td>Africa</td><td>$6,642,990,084</td></tr>
+            <tr><td>America</td><td>$6,639,656,068</td></tr>
+            <tr><td>Middle East</td><td>$6,567,494,315</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="qs">
+      <h2>How did that happen?</h2>
+      <div data-at="1"><b>Where does "revenue" get its definition?</b><span>the semantic layer</span></div>
+      <div data-at="1"><b>What did Fleet actually call in Snowflake?</b><span>the MCP server and its tools</span></div>
+      <div data-at="1"><b>Whose permissions did the query use?</b><span>OAuth and Snowflake roles</span></div>
+    </div>
   </div>
-  <p class="callout"><strong>The catch:</strong> Snowflake has no account-wide MCP endpoint. You create an MCP server object, choose its tools, and grant access to the server <em>and</em> to every object behind each tool.</p>
 </section>
 
 <!-- 3 -->
-<section class="slide" id="s3">
-  <p class="eyebrow">the building blocks</p>
-  <h2>Five Snowflake pieces</h2>
-  <div class="stack">
-    <div class="layer"><span class="name">MCP server</span><span class="desc">A schema object that exposes up to 50 tools. Fleet connects to its URL.</span><span class="chip">CREATE MCP SERVER</span></div>
-    <div class="layer"><span class="name">Cortex Agent</span><span class="desc">Plans, writes and runs SQL, can search documents and draw charts. Returns an answer.</span><span class="chip">CORTEX_AGENT_RUN</span></div>
-    <div class="layer"><span class="name">Cortex Analyst</span><span class="desc">Turns a question into SQL over a semantic view. Returns SQL only, not data.</span><span class="chip">CORTEX_ANALYST_MESSAGE</span></div>
-    <div class="layer"><span class="name">Read-only SQL</span><span class="desc">Runs a SELECT as the signed-in user's role and returns rows.</span><span class="chip">SYSTEM_EXECUTE_SQL</span></div>
-    <div class="layer"><span class="name">Semantic view</span><span class="desc">The semantic layer: business definitions over tables, covering joins, dimensions, metrics, synonyms and SQL rules.</span><span class="chip">CREATE SEMANTIC VIEW</span></div>
+<section class="slide">
+  <p class="eyebrow">the system</p>
+  <h2>One map for the whole talk</h2>
+  <div class="mapwrap"><svg class="map" data-map="overview" viewBox="0 0 1030 430" role="img" aria-label="System map: Fleet agent connects to a Snowflake MCP server with three tools, which reach the Cortex Agent, Cortex Analyst, the warehouse, the semantic view and tables."></svg></div>
+  <div class="row r4">
+    <div class="card"><h3>Fleet agent</h3><p>Runs in LangSmith. Sees Snowflake as MCP tools on one connection.</p></div>
+    <div class="card"><h3>MCP server</h3><p>A Snowflake object that lists which tools Fleet may call. You create and grant it.</p></div>
+    <div class="card"><h3>Cortex Agent and Analyst</h3><p>Snowflake's AI services. Analyst writes SQL; the Agent plans, runs SQL and answers.</p></div>
+    <div class="card"><h3>Semantic view</h3><p>Business definitions over your tables. Everything above reads it.</p></div>
   </div>
-  <p class="small">Access to the server lets a client list tools. Each tool still needs its own grant: USAGE on the agent, SELECT on the semantic view, SELECT on tables for SQL.</p>
 </section>
 
 <!-- 4 -->
-<section class="slide" id="s4">
-  <p class="eyebrow">what we built</p>
-  <h2>One server, three tools, two patterns</h2>
-  <div class="arch">
-    <div class="tier">
-      <div class="card"><h3>Fleet agent · Cortex Agent</h3><p>Tools: <span class="chip">sales_agent</span></p></div>
-      <div class="card"><h3>Fleet agent · Analyst + SQL</h3><p>Tools: <span class="chip">sales_analyst</span> <span class="chip">run_sql</span></p></div>
-    </div>
-    <div class="connector"><div class="bar"></div><div class="label">one MCP connection · OAuth 2.1 (Manual) · runs as the signed-in user</div><div class="bar"></div></div>
-    <div class="server">
-      <div class="hd"><span>FLEET_MCP.AGENTS.FLEET_MCP_SERVER</span><span class="meta">role FLEET_MCP_ROLE (read-only) · warehouse XS</span></div>
-      <div class="tools">
-        <div class="tool"><span class="n">sales_agent</span><span class="t">CORTEX_AGENT_RUN</span><span class="pat">Pattern A</span></div>
-        <div class="tool"><span class="n">sales_analyst</span><span class="t">CORTEX_ANALYST_MESSAGE</span><span class="pat">Pattern B · step 1</span></div>
-        <div class="tool"><span class="n">run_sql</span><span class="t">SYSTEM_EXECUTE_SQL · read_only</span><span class="pat">Pattern B · step 2</span></div>
+<section class="slide" data-steps="2">
+  <p class="eyebrow">the semantic layer</p>
+  <h2>Teaching Snowflake what "revenue" means</h2>
+  <div class="sem">
+    <div class="card">
+      <h3>What the tables say</h3>
+      <div class="cols">
+        <div><span class="tbl">LINEITEM.</span>L_EXTENDEDPRICE</div>
+        <div><span class="tbl">LINEITEM.</span>L_DISCOUNT</div>
+        <div><span class="tbl">ORDERS.</span>O_ORDERDATE</div>
+        <div><span class="tbl">LINEITEM.</span>L_SHIPDATE</div>
+        <div><span class="tbl">NATION.</span>N_REGIONKEY</div>
+        <div><span class="tbl">REGION.</span>R_NAME</div>
       </div>
     </div>
-    <div class="connector"><div class="bar"></div></div>
-    <div class="chain">
-      <div class="node"><b>SALES_AGENT</b><span>Cortex Agent</span></div>
-      <span class="arrow" aria-hidden="true">→</span>
-      <div class="node"><b>SALES_SV</b><span>semantic view</span></div>
-      <span class="arrow" aria-hidden="true">→</span>
-      <div class="node"><b>FLEET_MCP.DATA</b><span>orders · line items · customers · nations · regions</span></div>
+    <div class="arrowcol" aria-hidden="true">→</div>
+    <div class="card" data-at="1">
+      <h3>What SALES_SV defines</h3>
+      <div class="defs">
+        <div class="def"><b>total_revenue</b><code>SUM(L_EXTENDEDPRICE * (1 - L_DISCOUNT))</code><i>synonyms: revenue, sales, net sales</i></div>
+        <div class="def"><b>region_name</b><code>REGION.R_NAME via nation → region joins</code></div>
+        <div class="def"><b>order_year</b><code>YEAR(O_ORDERDATE)</code></div>
+      </div>
     </div>
+  </div>
+  <div class="story" data-at="2">
+    <div class="card"><h3>What we hit in testing</h3><p>Asked for 1995 revenue, Analyst filtered on <code>L_SHIPDATE</code> while the Agent used <code>O_ORDERDATE</code>. Europe came back as <span class="mono">$6.718B</span> vs <span class="mono">$6.702B</span>.</p></div>
+    <div class="card"><h3>One rule fixed both</h3><p>"Year questions use order date" added to the semantic view. Every agent and tool that reads it now agrees. Define it once, inherit it everywhere.</p></div>
   </div>
 </section>
 
 <!-- 5 -->
-<section class="slide" id="s5">
-  <p class="eyebrow">live demo</p>
-  <h2>Same question, both agents</h2>
-  <ol class="steps">
-    <li><div><p class="q">"What was total revenue by region in 1995?"</p><p class="exp">Ask both Fleet agents. Expect Europe highest at about $6.70B and Middle East lowest at about $6.57B.</p></div></li>
-    <li><div><p class="q">Open both traces in LangSmith</p><p class="exp">Pattern A: one long tool call. Pattern B: two short calls, with the generated SQL visible.</p></div></li>
-    <li><div><p class="q">"What's our employee headcount?"</p><p class="exp">Out of scope for the sales data. Both agents should say so instead of guessing.</p></div></li>
-  </ol>
+<section class="slide" data-steps="4">
+  <p class="eyebrow">pattern a</p>
+  <h2>Fleet calls a Cortex Agent</h2>
+  <div class="mapwrap"><svg class="map" data-map="a" viewBox="0 0 1030 430" role="img" aria-label="Pattern A path: Fleet to sales_agent to the Cortex Agent, which uses Analyst and the semantic view, then runs SQL on the warehouse against the tables."></svg></div>
+  <div class="row r4 steps">
+    <div class="step" data-at="1"><span class="n">1</span><div><b>Fleet calls one tool</b><span><code>sales_agent</code> with the user's question.</span></div></div>
+    <div class="step" data-at="2"><span class="n">2</span><div><b>The Agent plans</b><span>It asks Analyst, which writes SQL from the semantic view.</span></div></div>
+    <div class="step" data-at="3"><span class="n">3</span><div><b>It runs the SQL</b><span>On the warehouse, as the signed-in user's role.</span></div></div>
+    <div class="step" data-at="4"><span class="n">4</span><div><b>One big reply</b><span>Answer, rows, chart spec and follow-ups. ~18 s, ~31 KB.</span></div></div>
+  </div>
 </section>
 
 <!-- 6 -->
-<section class="slide" id="s6">
-  <p class="eyebrow">choosing a pattern</p>
-  <h2>Pattern A vs. Pattern B</h2>
-  <div class="tbl-wrap">
-    <table>
-      <thead><tr><th></th><th>A · Fleet → Cortex Agent</th><th>B · Fleet → Analyst → SQL</th></tr></thead>
-      <tbody>
-        <tr><th>tools</th><td><code>CORTEX_AGENT_RUN</code></td><td><code>CORTEX_ANALYST_MESSAGE</code> + <code>SYSTEM_EXECUTE_SQL</code></td></tr>
-        <tr><th>who reasons</th><td>The Cortex Agent, inside Snowflake</td><td>The Fleet agent</td></tr>
-        <tr><th>fleet gets</th><td>An answer, plus the agent's full run: SQL, rows, chart spec, follow-ups</td><td>SQL, then rows</td></tr>
-        <tr><th>latency*</th><td><strong>~18 s</strong>, one call</td><td><strong>~4 s + ~2 s</strong>, two calls</td></tr>
-        <tr><th>payload*</th><td><strong>~31 KB</strong></td><td><strong>&lt; 1 KB</strong> per call</td></tr>
-        <tr><th>in the trace</th><td>One opaque tool call</td><td>Every step, including the SQL</td></tr>
-        <tr><th>use when</th><td>A governed Cortex Agent is the product, or Snowflake should orchestrate Analyst, Search and charts</td><td>Fleet combines Snowflake with other tools and you want speed, cost control and full traceability</td></tr>
-      </tbody>
-    </table>
+<section class="slide" data-steps="3">
+  <p class="eyebrow">pattern b</p>
+  <h2>Fleet calls Analyst, then runs the SQL</h2>
+  <div class="mapwrap"><svg class="map" data-map="b" viewBox="0 0 1030 430" role="img" aria-label="Pattern B path: Fleet to sales_analyst to Cortex Analyst and the semantic view, which returns SQL; then Fleet to run_sql to the warehouse and tables, which returns rows."></svg></div>
+  <div class="row r3 steps">
+    <div class="step" data-at="1"><span class="n">1</span><div><b>Get the SQL</b><span><code>sales_analyst</code> reads the semantic view and returns SQL only. ~4 s.</span></div></div>
+    <div class="step" data-at="2"><span class="n">2</span><div><b>Run it</b><span>Fleet passes that SQL to <code>run_sql</code> (read-only). Rows come back. ~2 s.</span></div></div>
+    <div class="step" data-at="3"><span class="n">3</span><div><b>Fleet writes the answer</b><span>Same numbers as pattern A. Every step and the SQL are in the LangSmith trace.</span></div></div>
   </div>
-  <p class="foot">* One test question on an XS warehouse. Indicative only. Both patterns read the same semantic view, so metric definitions match.</p>
 </section>
 
 <!-- 7 -->
-<section class="slide" id="s7">
-  <p class="eyebrow">beyond one demo</p>
-  <h2>General-purpose chat across many domains</h2>
-  <p class="lede">Each business domain gets a semantic view, and each Analyst tool covers exactly one view (we tested this). A router picks the right view for each question. The only design choice is where that router lives.</p>
-  <div class="routers">
-    <div class="router">
-      <div class="router-hd"><span class="pat-tag">Pattern B</span><h3>Fleet routes</h3></div>
-      <div class="rflow">
-        <div class="rnode fleet">Fleet agent<span>chooses tools by their descriptions</span></div>
-        <div class="rdown" aria-hidden="true"></div>
-        <div class="rbox">
-          <span class="rbox-lbl">MCP server · up to 50 tools</span>
-          <div class="rtools">
-            <span class="chip">sales_analyst → SALES_SV</span>
-            <span class="chip">supplier_analyst → SUPPLIER_SV</span>
-            <span class="chip">finance_analyst → FINANCE_SV</span>
-            <span class="chip">run_sql</span>
-          </div>
-        </div>
+<section class="slide">
+  <p class="eyebrow">choosing a pattern</p>
+  <h2>Same answer, different trade-offs</h2>
+  <div class="row r2">
+    <div class="card">
+      <h3>Time to answer</h3>
+      <div class="bars">
+        <div class="bar-row"><span class="lbl">A · agent</span><div class="track"><div class="seg" style="width:100%"></div></div><span class="val">~18 s</span></div>
+        <div class="bar-row"><span class="lbl">B · analyst + sql</span><div class="track"><div class="seg" style="width:22.2%"></div><div class="seg b2" style="width:11.1%"></div></div><span class="val">~6 s</span></div>
+        <div class="axis"><span></span><span>0 s ············ 18 s</span><span></span></div>
       </div>
-      <p class="rnote">Fleet's reasoning and every SQL statement are visible in the LangSmith trace.</p>
     </div>
-    <div class="router">
-      <div class="router-hd"><span class="pat-tag">Pattern A</span><h3>Snowflake routes</h3></div>
-      <div class="rflow">
-        <div class="rnode fleet">Fleet agent<span>sees one tool</span></div>
-        <div class="rdown" aria-hidden="true"></div>
-        <div class="rbox">
-          <span class="rbox-lbl">MCP server · one agent tool</span>
-          <div class="rnode inner">Cortex Agent<span>orchestrates and combines results</span></div>
-          <div class="rtools">
-            <span class="chip">Analyst → SALES_SV</span>
-            <span class="chip">Analyst → SUPPLIER_SV</span>
-            <span class="chip">Analyst → FINANCE_SV</span>
-            <span class="chip">Search → documents</span>
-          </div>
-        </div>
+    <div class="card">
+      <h3>Data sent back to Fleet</h3>
+      <div class="bars">
+        <div class="bar-row"><span class="lbl">A · agent</span><div class="track"><div class="seg" style="width:100%"></div></div><span class="val">~31 KB</span></div>
+        <div class="bar-row"><span class="lbl">B · analyst + sql</span><div class="track"><div class="seg" style="width:2.1%"></div><div class="seg b2" style="width:2.5%"></div></div><span class="val">~1.4 KB</span></div>
+        <div class="axis"><span></span><span>0 KB ··········· 31 KB</span><span></span></div>
       </div>
-      <p class="rnote">Tested: asked "customers and suppliers per region", the agent queried both views and combined them (~35 s).</p>
     </div>
   </div>
-  <div class="grid cols-3">
-    <div class="card"><h3>One view per domain</h3><p>Define shared dimensions (region, customer, date) the same way in every view so answers line up.</p></div>
-    <div class="card"><h3>No "view of views"</h3><p>The router combines results across domains. Build a broader view only where cross-domain questions are common.</p></div>
-    <div class="card"><h3>Servers are access boundaries</h3><p>Group tools by who may use them. Each user's OAuth role decides which tools succeed.</p></div>
+  <div class="mapwrap card" style="padding:0 6px">
+    <table class="cmp">
+      <thead><tr><th></th><th>A · Fleet → Cortex Agent</th><th>B · Fleet → Analyst → SQL</th></tr></thead>
+      <tbody>
+        <tr><th>who reasons</th><td>The Cortex Agent, inside Snowflake</td><td>The Fleet agent</td></tr>
+        <tr><th>in the trace</th><td>One tool call; internals stay in Snowflake</td><td>Every step, including the generated SQL</td></tr>
+        <tr><th>use when</th><td>A governed Cortex Agent is the product, or you want Snowflake to combine Analyst, Search and charts</td><td>Fleet mixes Snowflake with other tools and you want speed and full traceability</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Measured on one question with an XS warehouse; indicative only.</p>
+</section>
+
+<!-- Demo -->
+<section class="slide">
+  <p class="eyebrow">live demo</p>
+  <h2>Same question, both agents</h2>
+  <div class="steps">
+    <div class="step"><span class="n">1</span><div><b>"What was total revenue by region in 1995?"</b><span>Ask both Fleet agents. Expect Europe highest at about $6.70B and Middle East lowest at about $6.57B.</span></div></div>
+    <div class="step"><span class="n">2</span><div><b>Open both traces in LangSmith</b><span>Pattern A: one long tool call. Pattern B: two short calls with the SQL visible.</span></div></div>
+    <div class="step"><span class="n">3</span><div><b>"What's our employee headcount?"</b><span>Not in the sales data. Both agents should say so instead of guessing.</span></div></div>
   </div>
 </section>
 
 <!-- 8 -->
-<section class="slide" id="s8">
+<section class="slide" data-steps="4">
   <p class="eyebrow">authentication</p>
-  <h2>OAuth, registered by hand</h2>
-  <p class="lede">Fleet's Auto mode needs dynamic client registration, which Snowflake doesn't support. Manual mode registers the same client on both sides.</p>
-  <div class="handshake">
-    <div class="card">
-      <h3>Snowflake</h3>
-      <p class="small">Security integration</p>
-      <div class="kv">
-        <div><code>TYPE = OAUTH · CONFIDENTIAL</code></div>
-        <div>redirect URI → LangSmith callback</div>
-        <div>allowed roles: <code>FLEET_MCP_ROLE</code></div>
-        <div>secondary roles: <code>NONE</code></div>
-      </div>
-    </div>
-    <div class="swap" aria-hidden="true">⇄</div>
-    <div class="card">
-      <h3>LangSmith</h3>
-      <p class="small">OAuth provider</p>
-      <div class="kv">
-        <div>client ID + secret from Snowflake</div>
-        <div>authorize + token URLs</div>
-        <div>grant: Authorization Code · PKCE on</div>
-        <div>scope: <code>session:role:FLEET_MCP_ROLE</code></div>
-      </div>
-    </div>
-    <div class="swap" aria-hidden="true">⇄</div>
-    <div class="card">
-      <h3>Fleet</h3>
-      <p class="small">MCP connection</p>
-      <div class="kv">
-        <div>server URL</div>
-        <div>OAuth 2.1 (Manual) → pick the provider</div>
-        <div>each user signs in to Snowflake once</div>
-      </div>
-    </div>
+  <h2>Each person signs in to Snowflake once</h2>
+  <div class="mapwrap"><svg class="map" data-map="auth" viewBox="0 0 1030 440" role="img" aria-label="OAuth sequence between user, Fleet, LangSmith OAuth provider and Snowflake."></svg></div>
+  <div class="explain" aria-live="polite">
+    <div class="cap" data-only="0"><span class="k">press → to walk through sign-in</span><p>Four stages: connect, sign in, exchange, then every question after that.</p></div>
+    <div class="cap" data-only="1"><span class="k">1 · connect</span><p>You add the Snowflake MCP server in Fleet. Fleet hands off to the LangSmith OAuth provider, which sends your browser to Snowflake's sign-in page. PKCE ties this request to the code that comes back, so it can't be intercepted and reused.</p></div>
+    <div class="cap" data-only="2"><span class="k">2 · sign in</span><p>You sign in on Snowflake's own page, with your Snowflake credentials or SSO, and approve access. LangSmith and Fleet never see your password.</p></div>
+    <div class="cap" data-only="3"><span class="k">3 · exchange</span><p>Snowflake sends a one-time code to LangSmith's callback URL. LangSmith trades it, plus the client secret, for an access token and a refresh token issued to you, under an allowed role.</p></div>
+    <div class="cap" data-only="4"><span class="k">4 · every question</span><p>Each Fleet tool call carries your token. Snowflake runs the session as your role, so your grants decide what every query can reach. The refresh token renews access without signing in again (up to a day in this setup).</p></div>
   </div>
-  <p class="small">Admin roles (ACCOUNTADMIN, SECURITYADMIN, ORGADMIN) are blocked from OAuth by default. One integration can serve every MCP server in the account.</p>
 </section>
 
 <!-- 9 -->
-<section class="slide" id="s9">
-  <p class="eyebrow">what we learned</p>
-  <h2>Lessons and production notes</h2>
-  <div class="grid cols-2">
-    <div class="card"><h3>Fix it once in the semantic view</h3><p>For "revenue in 1995", Analyst first filtered on ship date and the agent on order date, giving different totals. One SQL rule in the semantic view fixed it for both.</p></div>
-    <div class="card"><h3>Mind pattern A's payload</h3><p>The agent tool returns its whole run, about 31 KB. Instruct the Fleet agent to use only the final answer.</p></div>
-    <div class="card"><h3>Isolate raw SQL in production</h3><p>Put <code>run_sql</code> on its own server with its own least-privileged role, so it can't bypass an agent's guardrails.</p></div>
-    <div class="card"><h3>Keep roles tight</h3><p>Never grant MCP roles to PUBLIC. Write precise tool descriptions. MCP servers aren't replicated by failover groups, so script them.</p></div>
+<section class="slide" data-steps="2">
+  <p class="eyebrow">access control</p>
+  <h2>How Snowflake roles are respected</h2>
+  <div class="gates">
+    <div class="card gate"><span class="k">gate 1 · oauth integration</span><h3>Which roles may sign in</h3><p><code>ALLOWED_ROLES_LIST</code> names the roles Fleet sessions may use. ACCOUNTADMIN and other admin roles are blocked by default.</p></div>
+    <div class="chev" aria-hidden="true">→</div>
+    <div class="card gate"><span class="k">gate 2 · session role</span><h3>One role per session</h3><p>The session runs as the user's role, from the token's scope or their default. <code>OAUTH_USE_SECONDARY_ROLES = NONE</code> stops other roles leaking in.</p></div>
+    <div class="chev" aria-hidden="true">→</div>
+    <div class="card gate"><span class="k">gate 3 · object grants</span><h3>Each tool checks grants</h3><p><code>USAGE</code> on the agent, <code>SELECT</code> on the semantic view and tables. <code>run_sql</code> is read-only.</p></div>
+    <div class="chev" aria-hidden="true">→</div>
+    <div class="card gate" style="justify-content:center"><h3>Data</h3><p>Only what that role can read.</p></div>
   </div>
-  <p class="callout"><strong>Start with B</strong> when Fleet owns the reasoning and you want every step traced. <strong>Use A</strong> where a governed Cortex Agent is the product.</p>
+  <div data-at="1">
+    <p class="note" style="margin-bottom:8px">Same Fleet agent, same MCP server, two people · design example, not part of today's demo</p>
+    <div class="mapwrap card" style="padding:0 6px">
+      <table class="users">
+        <thead><tr><th>signed-in user</th><th>role</th><th>sales_analyst</th><th>finance_analyst</th><th>run_sql on finance tables</th></tr></thead>
+        <tbody>
+          <tr><td>Sales analyst</td><td><code>SALES_READ</code></td><td class="ok">works</td><td class="no">no privilege</td><td class="no">no privilege</td></tr>
+          <tr><td>Finance lead</td><td><code>FINANCE_READ</code></td><td class="ok">works</td><td class="ok">works</td><td class="ok">works</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="lede" data-at="2">LangSmith decides which tools an agent can call. Snowflake decides what data each person can reach. Neither system has to copy the other's permissions.</p>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-steps="3">
+  <p class="eyebrow">beyond one demo</p>
+  <h2>General-purpose chat across many databases</h2>
+  <p class="lede">Give each business domain a semantic view over its own database or schemas. Each Analyst tool covers exactly one view (we tested this), so something has to pick the right view per question.</p>
+  <div class="routes">
+    <div class="route" data-at="1">
+      <div class="hd"><span class="tag">pattern b</span><h3>Fleet routes</h3></div>
+      <div class="stack">
+        <div class="lvl"><span class="k">fleet agent · picks tools by description</span></div>
+        <div class="vline" aria-hidden="true"></div>
+        <div class="lvl srv"><span class="k">mcp server · up to 50 tools</span><span class="pill">sales_analyst</span><span class="pill">finance_analyst</span><span class="pill">support_analyst</span><span class="pill">run_sql</span></div>
+        <div class="vline" aria-hidden="true"></div>
+        <div class="lvl"><span class="k">semantic views → databases</span><span class="pill">SALES_SV → SALES_DB</span><span class="pill">FINANCE_SV → FIN_DB</span><span class="pill">SUPPORT_SV → SUPPORT_DB</span></div>
+      </div>
+      <p>Fleet's reasoning and every SQL statement show in the trace.</p>
+    </div>
+    <div class="route" data-at="2">
+      <div class="hd"><span class="tag">pattern a</span><h3>Snowflake routes</h3></div>
+      <div class="stack">
+        <div class="lvl"><span class="k">fleet agent · sees one tool</span></div>
+        <div class="vline" aria-hidden="true"></div>
+        <div class="lvl srv"><span class="k">mcp server → cortex agent · combines results</span><span class="pill">Analyst → SALES_SV</span><span class="pill">Analyst → FINANCE_SV</span><span class="pill">Analyst → SUPPORT_SV</span><span class="pill">Search → docs</span></div>
+        <div class="vline" aria-hidden="true"></div>
+        <div class="lvl"><span class="k">semantic views → databases</span><span class="pill">same views, same grants</span></div>
+      </div>
+      <p>Tested: asked for customers and suppliers per region, the agent queried two views and combined them (~35 s).</p>
+    </div>
+  </div>
+  <div class="row r3" data-at="3">
+    <div class="card"><h3>Split servers by access</h3><p>A server is an access boundary: e.g. <code>ANALYTICS_MCP</code> for everyone, <code>FINANCE_MCP</code> for finance roles.</p></div>
+    <div class="card"><h3>No "view of views"</h3><p>The router combines domains. Add a broader view only where cross-domain questions are common.</p></div>
+    <div class="card"><h3>Shared dimensions</h3><p>Define region, customer and date the same way in every view so answers line up.</p></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide setup">
+  <p class="eyebrow">takeaways</p>
+  <h2>Setting this up yourself</h2>
+  <div class="row r5">
+    <div class="card"><span class="n">1</span><h3>Semantic views</h3><p>One per domain, with metrics, synonyms and SQL rules.</p></div>
+    <div class="card"><span class="n">2</span><h3>Cortex Agent</h3><p>Optional for pattern B. One Analyst tool per view.</p></div>
+    <div class="card"><span class="n">3</span><h3>MCP server</h3><p>Choose the tools. Split servers by who may use them.</p></div>
+    <div class="card"><span class="n">4</span><h3>Roles and grants</h3><p>Server, agent, views and tables. Default role and warehouse per user.</p></div>
+    <div class="card"><span class="n">5</span><h3>OAuth</h3><p>Snowflake integration ⇄ LangSmith provider ⇄ Fleet connection.</p></div>
+  </div>
+  <div class="verdict">
+    <div><b>Start with pattern B</b> when Fleet owns the reasoning, mixes in other tools, and you want every step traced.</div>
+    <div><b>Use pattern A</b> where a governed Cortex Agent is the product, or Snowflake should orchestrate Analyst, Search and charts.</div>
+  </div>
+  <p class="note">In production, put <code>run_sql</code> on its own server and role. Never grant MCP roles to PUBLIC.</p>
 </section>
 
 </main>
 
 <div class="hud">
-  <span id="count" aria-live="polite">1 / 9</span>
-  <button type="button" id="prev" aria-label="Previous slide">←</button>
-  <button type="button" id="next" aria-label="Next slide">→</button>
+  <span id="count" aria-live="polite">1 / 12</span>
+  <button type="button" id="prev" aria-label="Previous">←</button>
+  <button type="button" id="next" aria-label="Next">→</button>
   <button type="button" id="theme" aria-label="Toggle light and dark theme">Theme</button>
 </div>
 
 <script>
 (function () {
-  const slides = Array.from(document.querySelectorAll('.slide'));
-  const count = document.getElementById('count');
-  let current = 0;
+  const NS = 'http://www.w3.org/2000/svg';
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  slides.forEach((s, i) => {
-    const n = document.createElement('span');
-    n.className = 'pageno';
-    n.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
-    s.appendChild(n);
-  });
+  function el(tag, attrs, text) {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
 
-  const go = (i) => {
-    current = Math.max(0, Math.min(slides.length - 1, i));
-    slides[current].scrollIntoView({ block: 'start' });
+  // ---- System map (static, author-defined geometry) ----
+  const NODES = {
+    fleet:   { x: 30,  y: 212, w: 160, h: 70, t: 'Fleet agent',    s: 'in LangSmith' },
+    tAgent:  { x: 290, y: 130, w: 170, h: 56, t: 'sales_agent',    s: 'CORTEX_AGENT_RUN' },
+    tAnal:   { x: 290, y: 222, w: 170, h: 56, t: 'sales_analyst',  s: 'CORTEX_ANALYST_MESSAGE' },
+    tSql:    { x: 290, y: 314, w: 170, h: 56, t: 'run_sql',        s: 'SYSTEM_EXECUTE_SQL' },
+    agent:   { x: 560, y: 130, w: 160, h: 56, t: 'Cortex Agent',   s: 'SALES_AGENT' },
+    analyst: { x: 560, y: 222, w: 160, h: 56, t: 'Cortex Analyst', s: 'question → SQL' },
+    wh:      { x: 560, y: 314, w: 160, h: 56, t: 'Warehouse',      s: 'runs SQL as user role' },
+    sv:      { x: 820, y: 222, w: 180, h: 56, t: 'Semantic view',  s: 'SALES_SV' },
+    tables:  { x: 820, y: 314, w: 180, h: 56, t: 'Tables',         s: 'FLEET_MCP.DATA' }
+  };
+  const EDGES = {
+    fAg:  [[190, 247], [240, 158], [290, 158]],
+    fAn:  [[190, 247], [240, 250], [290, 250]],
+    fSq:  [[190, 247], [240, 342], [290, 342]],
+    agA:  [[460, 158], [510, 158], [560, 158]],
+    anA:  [[460, 250], [510, 250], [560, 250]],
+    sqW:  [[460, 342], [510, 342], [560, 342]],
+    ag2an:[[640, 186], [640, 204], [640, 222]],
+    an2wh:[[640, 278], [640, 296], [640, 314]],
+    an2sv:[[720, 250], [770, 250], [820, 250]],
+    wh2tb:[[720, 342], [770, 342], [820, 342]],
+    sv2tb:[[910, 278], [910, 296], [910, 314]]
+  };
+  // Per-map paths: element id -> build step at which it lights up. Badges mark step numbers on the map.
+  const PATHS = {
+    overview: null,
+    a: { on: { fleet: 1, fAg: 1, tAgent: 1, agA: 1, agent: 1, ag2an: 2, analyst: 2, an2sv: 2, sv: 2, an2wh: 3, wh: 3, wh2tb: 3, tables: 3 },
+         badges: [[240, 180, 1], [655, 204, 2], [655, 296, 3], [110, 300, 4]] },
+    b: { on: { fleet: 1, fAn: 1, tAnal: 1, anA: 1, analyst: 1, an2sv: 1, sv: 1, fSq: 2, tSql: 2, sqW: 2, wh: 2, wh2tb: 2, tables: 2 },
+         badges: [[240, 236, 1], [240, 320, 2], [110, 300, 3]] }
   };
 
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((e) => {
-      if (e.isIntersecting) {
-        current = slides.indexOf(e.target);
-        count.textContent = (current + 1) + ' / ' + slides.length;
-      }
-    });
-  }, { threshold: 0.55 });
-  slides.forEach((s) => io.observe(s));
+  function quad(p) {
+    const [a, c, b] = p;
+    const mx = (a[0] + 2 * c[0] + b[0]) / 4, my = (a[1] + 2 * c[1] + b[1]) / 4;
+    const ang = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
+    return { d: `M${a[0]} ${a[1]} Q${c[0]} ${c[1]} ${b[0]} ${b[1]}`, mx, my, ang, a, b };
+  }
 
-  document.getElementById('prev').addEventListener('click', () => go(current - 1));
-  document.getElementById('next').addEventListener('click', () => go(current + 1));
-  document.addEventListener('keydown', (e) => {
-    if (e.target.closest && e.target.closest('input, textarea')) return;
-    if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(current + 1); }
-    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(current - 1); }
-    if (e.key === 'Home') { e.preventDefault(); go(0); }
-    if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+  function drawSystem(svg, key) {
+    const cfg = PATHS[key];
+    if (cfg) svg.classList.add('has-path');
+    svg.appendChild(el('rect', { class: 'box dash', x: 10, y: 40, width: 200, height: 370, rx: 12 }));
+    svg.appendChild(el('text', { class: 'boxlbl', x: 24, y: 64 }, 'LangSmith'));
+    svg.appendChild(el('rect', { class: 'box', x: 250, y: 40, width: 765, height: 370, rx: 12 }));
+    svg.appendChild(el('text', { class: 'boxlbl', x: 264, y: 64 }, 'Snowflake account'));
+    svg.appendChild(el('rect', { class: 'box dash', x: 272, y: 96, width: 206, height: 296, rx: 10 }));
+    svg.appendChild(el('text', { class: 'boxlbl', x: 286, y: 118 }, 'MCP server'));
+
+    for (const id in EDGES) {
+      const q = quad(EDGES[id]);
+      const g = el('g', { class: 'e' });
+      if (cfg && cfg.on[id]) g.dataset.lit = cfg.on[id];
+      g.appendChild(el('path', { d: q.d }));
+      g.appendChild(el('circle', { cx: q.a[0], cy: q.a[1], r: 3 }));
+      g.appendChild(el('circle', { cx: q.b[0], cy: q.b[1], r: 3 }));
+      g.appendChild(el('polygon', { points: '-5,-5 6,0 -5,5', transform: `translate(${q.mx} ${q.my}) rotate(${q.ang})` }));
+      svg.appendChild(g);
+    }
+    for (const id in NODES) {
+      const n = NODES[id];
+      const g = el('g', { class: 'nd' + (cfg ? ' off' : '') });
+      if (cfg && cfg.on[id]) g.dataset.lit = cfg.on[id];
+      g.appendChild(el('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 8 }));
+      const cy = n.y + n.h / 2;
+      g.appendChild(el('text', { class: 't', x: n.x + 14, y: cy - 3 }, n.t));
+      g.appendChild(el('text', { class: 's', x: n.x + 14, y: cy + 15 }, n.s));
+      svg.appendChild(g);
+    }
+    if (cfg) for (const [x, y, k] of cfg.badges) {
+      const g = el('g', { class: 'badge' });
+      g.dataset.at = k;
+      g.appendChild(el('circle', { cx: x, cy: y, r: 11 }));
+      g.appendChild(el('text', { x: x, y: y + 4, 'text-anchor': 'middle' }, String(k)));
+      svg.appendChild(g);
+    }
+  }
+
+  // ---- OAuth sequence diagram ----
+  function drawAuth(svg) {
+    const X = { user: 110, fleet: 370, ls: 630, sf: 890 };
+    const heads = [['user', 'You'], ['fleet', 'Fleet'], ['ls', 'LangSmith OAuth provider'], ['sf', 'Snowflake']];
+    for (const [k, label] of heads) {
+      svg.appendChild(el('line', { class: 'lane', x1: X[k], y1: 52, x2: X[k], y2: 430 }));
+      const g = el('g', { class: 'lanehd' });
+      const w = Math.max(110, label.length * 8.6 + 24);
+      g.appendChild(el('rect', { x: X[k] - w / 2, y: 12, width: w, height: 36, rx: 8 }));
+      g.appendChild(el('text', { x: X[k], y: 35, 'text-anchor': 'middle' }, label));
+      svg.appendChild(g);
+    }
+    const MSGS = [
+      [1, 'user', 'fleet', 82, 'add the Snowflake connection'],
+      [1, 'fleet', 'ls', 118, 'start sign-in with the provider'],
+      [1, 'ls', 'sf', 154, '/oauth/authorize (PKCE)'],
+      [2, 'user', 'sf', 196, 'sign in as yourself and approve'],
+      [3, 'sf', 'ls', 238, 'authorization code → LangSmith callback'],
+      [3, 'ls', 'sf', 274, '/oauth/token-request (client secret + PKCE)'],
+      [3, 'sf', 'ls', 310, 'access + refresh token for this user, this role'],
+      [4, 'fleet', 'sf', 398, 'every tool call: Authorization: Bearer <your token>']
+    ];
+    svg.appendChild(el('line', { class: 'sep', x1: 30, y1: 346, x2: 1000, y2: 346, 'data-at': 4 }));
+    const sl = el('text', { class: 'seplbl', x: 34, y: 366 }, 'then, on every question');
+    sl.dataset.at = 4; svg.appendChild(sl);
+    for (const [step, from, to, y, label] of MSGS) {
+      const x1 = X[from], x2 = X[to], dir = x2 > x1 ? 1 : -1;
+      const g = el('g', { class: 'msg' });
+      g.dataset.lit = step;
+      g.appendChild(el('path', { d: `M${x1} ${y} L${x2 - dir * 8} ${y}` }));
+      g.appendChild(el('polygon', { points: dir > 0 ? `${x2 - 10},${y - 5} ${x2},${y} ${x2 - 10},${y + 5}` : `${x2 + 10},${y - 5} ${x2},${y} ${x2 + 10},${y + 5}` }));
+      g.appendChild(el('text', { x: (x1 + x2) / 2, y: y - 8, 'text-anchor': 'middle' }, label));
+      svg.appendChild(g);
+    }
+  }
+
+  document.querySelectorAll('svg[data-map]').forEach((svg) => {
+    const key = svg.dataset.map;
+    if (key === 'auth') drawAuth(svg); else drawSystem(svg, key);
   });
 
-  // Dark by default (brand primary); the toggle flips between explicit dark and light.
+  // ---- Slides and builds ----
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const count = document.getElementById('count');
+  slides.forEach((s) => { s.step = 0; s.max = Number(s.dataset.steps || 0); });
+  let cur = 0;
+
+  function drawIn(path) {
+    if (reduce || !path.getTotalLength) return;
+    const len = path.getTotalLength();
+    path.animate([{ strokeDasharray: `${len}`, strokeDashoffset: `${len}` }, { strokeDasharray: `${len}`, strokeDashoffset: '0' }],
+                 { duration: 420, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+  }
+
+  function apply(s, animate) {
+    s.querySelectorAll('[data-at]').forEach((n) => n.classList.toggle('pending', Number(n.dataset.at) > s.step));
+    s.querySelectorAll('[data-only]').forEach((n) => n.classList.toggle('hide', Number(n.dataset.only) !== s.step));
+    s.querySelectorAll('[data-lit]').forEach((n) => {
+      const on = Number(n.dataset.lit) <= s.step;
+      const was = n.classList.contains('lit');
+      n.classList.toggle('lit', on);
+      if (n.classList.contains('nd')) n.classList.toggle('off', !on);
+      if (on && !was && animate) n.querySelectorAll('path').forEach(drawIn);
+    });
+  }
+  slides.forEach((s) => apply(s, false));
+
+  function show(i, step) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    const s = slides[cur];
+    if (step != null) { s.step = step; apply(s, false); }
+    s.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    count.textContent = (cur + 1) + ' / ' + slides.length;
+  }
+  function next() {
+    const s = slides[cur];
+    if (s.step < s.max) { s.step++; apply(s, true); } else if (cur < slides.length - 1) show(cur + 1, 0);
+  }
+  function prev() {
+    const s = slides[cur];
+    if (s.step > 0) { s.step--; apply(s, false); } else if (cur > 0) show(cur - 1, slides[cur - 1].max);
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) { cur = slides.indexOf(e.target); count.textContent = (cur + 1) + ' / ' + slides.length; } });
+  }, { threshold: 0.6 });
+  slides.forEach((s) => io.observe(s));
+
+  document.getElementById('next').addEventListener('click', next);
+  document.getElementById('prev').addEventListener('click', prev);
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+  });
+  count.textContent = '1 / ' + slides.length;
+
+  // ---- Theme: dark by default (brand primary), toggle persists per viewer ----
   const root = document.documentElement;
-  const stored = (() => { try { return localStorage.getItem('deck-theme'); } catch (_) { return null; } })();
-  if (!root.dataset.theme) root.dataset.theme = stored || 'dark';
+  let stored = null;
+  try { stored = localStorage.getItem('deck-theme'); } catch (_) {}
+  if (!root.dataset.theme) root.dataset.theme = stored === 'light' ? 'light' : 'dark';
   document.getElementById('theme').addEventListener('click', () => {
     root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
     try { localStorage.setItem('deck-theme', root.dataset.theme); } catch (_) {}
