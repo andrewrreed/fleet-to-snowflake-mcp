@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}</style>
+<title>Fleet × Snowflake MCP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a vertical stack of full-height slides with scroll-snap; arrow keys / space step between them. */
+:root {
+  --bg: #F2FAFF; --bg2: #E5F4FF; --card-fill: #E5F4FF; --line: #99D3FF; --line-strong: #40668D;
+  --fg: #030710; --fg2: #161F34; --muted: #2F4B68; --accent: #006DDD; --accent-soft: #CCE9FF; --chip: #CCE9FF;
+  --good: #6E8900;
+  --sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #030710; --bg2: #0D1322; --card-fill: #0D1322; --line: #2F4B68; --line-strong: #40668D;
+    --fg: #F2FAFF; --fg2: #B2DEFF; --muted: #99D3FF; --accent: #7FC8FF; --accent-soft: #161F34; --chip: #161F34;
+    --good: #E3FF8F; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #030710; --bg2: #0D1322; --card-fill: #0D1322; --line: #2F4B68; --line-strong: #40668D;
+  --fg: #F2FAFF; --fg2: #B2DEFF; --muted: #99D3FF; --accent: #7FC8FF; --accent-soft: #161F34; --chip: #161F34;
+  --good: #E3FF8F; color-scheme: dark;
+}
+
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-weight: 300; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+.slide {
+  scroll-snap-align: start;
+  min-height: 100svh;
+  box-sizing: border-box;
+  padding: clamp(28px, 5vw, 72px) clamp(16px, 6vw, 96px);
+  display: flex; flex-direction: column; justify-content: center; gap: clamp(18px, 2.6vw, 32px);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.slide > * { max-width: 1180px; width: 100%; margin-inline: auto; }
+.eyebrow { font-family: var(--mono); font-size: 13px; letter-spacing: 0.04em; color: var(--accent); text-transform: lowercase; }
+h1, h2 { font-weight: 300; letter-spacing: -0.02em; line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(38px, 6.4vw, 84px); }
+h2 { font-size: clamp(28px, 4vw, 52px); }
+.lede { font-size: clamp(17px, 1.7vw, 22px); line-height: 1.4; color: var(--fg2); max-width: 62ch; margin: 0; }
+p { margin: 0; }
+code, .mono { font-family: var(--mono); font-weight: 400; }
+.small { font-size: 14px; line-height: 1.45; color: var(--fg2); }
+.meta { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+
+.grid { display: grid; gap: clamp(12px, 1.6vw, 20px); }
+.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 820px) { .cols-3, .cols-2 { grid-template-columns: 1fr; } }
+
+.card { background: var(--card-fill); border: 1px solid var(--line); border-radius: 10px; padding: clamp(16px, 1.8vw, 24px); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card h3 { font-weight: 400; font-size: clamp(18px, 1.6vw, 22px); margin: 0; color: var(--accent); letter-spacing: -0.01em; }
+.card p { font-size: 16px; line-height: 1.45; color: var(--fg2); }
+.chip { font-family: var(--mono); font-size: 13px; background: var(--chip); border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; color: var(--fg); white-space: nowrap; display: inline-block; }
+.callout { border-left: 2px solid var(--accent); padding: 4px 0 4px 18px; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.45; color: var(--fg2); }
+.callout strong { color: var(--fg); font-weight: 600; }
+
+/* Title slide */
+.title-slide { justify-content: flex-end; padding-bottom: clamp(48px, 10vh, 120px); }
+.title-slide h1 { font-size: clamp(44px, 8vw, 112px); }
+.flow-line { height: 2px; background: linear-gradient(90deg, #030710, #006DDD 45%, #7FC8FF); border-radius: 2px; max-width: 520px !important; margin-left: 0 !important; }
+
+/* Building blocks */
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.layer { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 14px 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--card-fill); }
+.layer .name { font-weight: 400; font-size: 19px; color: var(--fg); }
+.layer .desc { font-size: 16px; color: var(--fg2); line-height: 1.4; }
+@media (max-width: 820px) { .layer { grid-template-columns: 1fr; gap: 6px; } }
+
+/* Architecture */
+.arch { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+.tier { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.tier > .card { flex: 1 1 260px; }
+.connector { display: flex; flex-direction: column; align-items: center; padding: 6px 0; }
+.connector .bar { width: 2px; height: 22px; background: linear-gradient(#006DDD, #7FC8FF); }
+.connector .label { font-family: var(--mono); font-size: 13px; color: var(--muted); text-align: center; padding: 4px 10px; }
+.server { border: 1px solid var(--accent); border-radius: 12px; padding: 18px; background: var(--card-fill); display: flex; flex-direction: column; gap: 12px; }
+.server .hd { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.server .hd span:first-child { font-family: var(--mono); color: var(--accent); font-size: 15px; }
+.tools { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 820px) { .tools { grid-template-columns: 1fr; } }
+.tool { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; background: var(--bg); min-width: 0; }
+.tool .n { font-family: var(--mono); font-size: 15px; color: var(--fg); }
+.tool .t { font-family: var(--mono); font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.tool .pat { font-size: 13px; color: var(--accent); font-weight: 400; }
+.chain { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.chain .node { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: var(--card-fill); text-align: center; min-width: 0; }
+.chain .node b { display: block; font-weight: 400; font-size: 16px; }
+.chain .node span { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.arrow { color: var(--accent); font-family: var(--mono); font-size: 18px; }
+
+/* Demo steps (an actual sequence, so numbered) */
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; counter-reset: s; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; align-items: start; padding: 18px 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--card-fill); }
+.steps li::before { content: counter(s); font-family: var(--mono); font-size: 15px; color: var(--accent); border: 1px solid var(--accent); border-radius: 100px; width: 32px; height: 32px; display: grid; place-items: center; }
+.steps .q { font-size: clamp(18px, 1.7vw, 22px); font-weight: 400; }
+.steps .exp { font-size: 15px; color: var(--fg2); margin-top: 4px; }
+
+/* Comparison table */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 16px; }
+th, td { text-align: left; padding: 12px 18px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.4; }
+tr:last-child td { border-bottom: 0; }
+thead th { font-weight: 400; font-size: 20px; color: var(--accent); background: var(--card-fill); }
+thead th:first-child { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+tbody th { font-family: var(--mono); font-weight: 400; font-size: 13px; color: var(--muted); white-space: nowrap; width: 18%; }
+td { color: var(--fg2); }
+td strong { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.foot { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+
+
+/* Scaling slide: two routing options side by side */
+.routers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 20px); }
+@media (max-width: 900px) { .routers { grid-template-columns: 1fr; } }
+.router { border: 1px solid var(--line); border-radius: 12px; padding: clamp(14px, 1.6vw, 20px); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.router-hd { display: flex; align-items: baseline; gap: 12px; }
+.router-hd h3 { margin: 0; font-weight: 300; font-size: clamp(22px, 2vw, 28px); letter-spacing: -0.02em; }
+.pat-tag { font-family: var(--mono); font-size: 12.5px; color: var(--accent); border: 1px solid var(--accent); border-radius: 100px; padding: 2px 10px; white-space: nowrap; }
+.rflow { display: flex; flex-direction: column; align-items: stretch; }
+.rnode { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--card-fill); font-weight: 400; font-size: 16px; display: flex; flex-direction: column; gap: 2px; }
+.rnode span { font-family: var(--mono); font-weight: 400; font-size: 12.5px; color: var(--muted); }
+.rnode.fleet { align-self: center; text-align: center; min-width: 60%; }
+.rnode.inner { border-color: var(--accent); }
+.rdown { width: 2px; height: 18px; margin: 0 auto; background: linear-gradient(#006DDD, #7FC8FF); }
+.rbox { border: 1px solid var(--accent); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--card-fill); }
+.rbox-lbl { font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
+.rtools { display: flex; flex-wrap: wrap; gap: 6px; }
+.rnote { font-size: 14px; line-height: 1.45; color: var(--fg2); }
+#s7 .card p { font-size: 15px; }
+#s7 .lede { font-size: clamp(16px, 1.45vw, 19px); }
+
+/* Auth */
+.handshake { display: grid; grid-template-columns: minmax(0,1fr) 40px minmax(0,1fr) 40px minmax(0,1fr); align-items: stretch; }
+.handshake .swap { display: grid; place-items: center; color: var(--accent); font-family: var(--mono); font-size: 20px; }
+@media (max-width: 900px) { .handshake { grid-template-columns: 1fr; } .handshake .swap { transform: rotate(90deg); padding: 4px 0; } }
+.kv { display: flex; flex-direction: column; gap: 6px; font-size: 14.5px; color: var(--fg2); }
+.kv div { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; }
+.kv code { font-size: 13px; color: var(--fg); }
+
+/* Chrome */
+.hud { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 8px; align-items: center; z-index: 10; }
+.hud button, .hud span { font-family: var(--mono); font-size: 13px; color: var(--fg2); background: var(--bg2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.hud button { cursor: pointer; }
+.hud button:hover { color: var(--fg); border-color: var(--accent); }
+.hud button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hud span { font-variant-numeric: tabular-nums; }
+.pageno { position: absolute; left: clamp(16px, 6vw, 96px); bottom: 18px; font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: none !important; width: auto !important; margin: 0 !important; }
+</style>
+</head>
+<body>
+
+<main id="deck">
+
+<!-- 1 -->
+<section class="slide title-slide" id="s1">
+  <p class="eyebrow">langsmith fleet × snowflake cortex</p>
+  <h1>Querying Snowflake<br>from LangSmith Fleet</h1>
+  <div class="flow-line" aria-hidden="true"></div>
+  <p class="lede">Two patterns over Snowflake's managed MCP server, with per-user OAuth.</p>
+  <p class="meta">Live demo on TPC-H sample data · press → or space to advance</p>
+</section>
+
+<!-- 2 -->
+<section class="slide" id="s2">
+  <p class="eyebrow">the ask</p>
+  <h2>How do Fleet agents get answers<br>from Snowflake data?</h2>
+  <div class="grid cols-3">
+    <div class="card"><h3>Governed metrics</h3><p>"Revenue" means the same thing in every answer, no matter which agent asks.</p></div>
+    <div class="card"><h3>Per-user access</h3><p>Each person queries as themselves, under the Snowflake roles they already have.</p></div>
+    <div class="card"><h3>Traceable</h3><p>See what was asked, which SQL ran and what came back, in LangSmith.</p></div>
+  </div>
+  <p class="callout"><strong>The catch:</strong> Snowflake has no account-wide MCP endpoint. You create an MCP server object, choose its tools, and grant access to the server <em>and</em> to every object behind each tool.</p>
+</section>
+
+<!-- 3 -->
+<section class="slide" id="s3">
+  <p class="eyebrow">the building blocks</p>
+  <h2>Five Snowflake pieces</h2>
+  <div class="stack">
+    <div class="layer"><span class="name">MCP server</span><span class="desc">A schema object that exposes up to 50 tools. Fleet connects to its URL.</span><span class="chip">CREATE MCP SERVER</span></div>
+    <div class="layer"><span class="name">Cortex Agent</span><span class="desc">Plans, writes and runs SQL, can search documents and draw charts. Returns an answer.</span><span class="chip">CORTEX_AGENT_RUN</span></div>
+    <div class="layer"><span class="name">Cortex Analyst</span><span class="desc">Turns a question into SQL over a semantic view. Returns SQL only, not data.</span><span class="chip">CORTEX_ANALYST_MESSAGE</span></div>
+    <div class="layer"><span class="name">Read-only SQL</span><span class="desc">Runs a SELECT as the signed-in user's role and returns rows.</span><span class="chip">SYSTEM_EXECUTE_SQL</span></div>
+    <div class="layer"><span class="name">Semantic view</span><span class="desc">The semantic layer: business definitions over tables, covering joins, dimensions, metrics, synonyms and SQL rules.</span><span class="chip">CREATE SEMANTIC VIEW</span></div>
+  </div>
+  <p class="small">Access to the server lets a client list tools. Each tool still needs its own grant: USAGE on the agent, SELECT on the semantic view, SELECT on tables for SQL.</p>
+</section>
+
+<!-- 4 -->
+<section class="slide" id="s4">
+  <p class="eyebrow">what we built</p>
+  <h2>One server, three tools, two patterns</h2>
+  <div class="arch">
+    <div class="tier">
+      <div class="card"><h3>Fleet agent · Cortex Agent</h3><p>Tools: <span class="chip">sales_agent</span></p></div>
+      <div class="card"><h3>Fleet agent · Analyst + SQL</h3><p>Tools: <span class="chip">sales_analyst</span> <span class="chip">run_sql</span></p></div>
+    </div>
+    <div class="connector"><div class="bar"></div><div class="label">one MCP connection · OAuth 2.1 (Manual) · runs as the signed-in user</div><div class="bar"></div></div>
+    <div class="server">
+      <div class="hd"><span>FLEET_MCP.AGENTS.FLEET_MCP_SERVER</span><span class="meta">role FLEET_MCP_ROLE (read-only) · warehouse XS</span></div>
+      <div class="tools">
+        <div class="tool"><span class="n">sales_agent</span><span class="t">CORTEX_AGENT_RUN</span><span class="pat">Pattern A</span></div>
+        <div class="tool"><span class="n">sales_analyst</span><span class="t">CORTEX_ANALYST_MESSAGE</span><span class="pat">Pattern B · step 1</span></div>
+        <div class="tool"><span class="n">run_sql</span><span class="t">SYSTEM_EXECUTE_SQL · read_only</span><span class="pat">Pattern B · step 2</span></div>
+      </div>
+    </div>
+    <div class="connector"><div class="bar"></div></div>
+    <div class="chain">
+      <div class="node"><b>SALES_AGENT</b><span>Cortex Agent</span></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="node"><b>SALES_SV</b><span>semantic view</span></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="node"><b>FLEET_MCP.DATA</b><span>orders · line items · customers · nations · regions</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide" id="s5">
+  <p class="eyebrow">live demo</p>
+  <h2>Same question, both agents</h2>
+  <ol class="steps">
+    <li><div><p class="q">"What was total revenue by region in 1995?"</p><p class="exp">Ask both Fleet agents. Expect Europe highest at about $6.70B and Middle East lowest at about $6.57B.</p></div></li>
+    <li><div><p class="q">Open both traces in LangSmith</p><p class="exp">Pattern A: one long tool call. Pattern B: two short calls, with the generated SQL visible.</p></div></li>
+    <li><div><p class="q">"What's our employee headcount?"</p><p class="exp">Out of scope for the sales data. Both agents should say so instead of guessing.</p></div></li>
+  </ol>
+</section>
+
+<!-- 6 -->
+<section class="slide" id="s6">
+  <p class="eyebrow">choosing a pattern</p>
+  <h2>Pattern A vs. Pattern B</h2>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th></th><th>A · Fleet → Cortex Agent</th><th>B · Fleet → Analyst → SQL</th></tr></thead>
+      <tbody>
+        <tr><th>tools</th><td><code>CORTEX_AGENT_RUN</code></td><td><code>CORTEX_ANALYST_MESSAGE</code> + <code>SYSTEM_EXECUTE_SQL</code></td></tr>
+        <tr><th>who reasons</th><td>The Cortex Agent, inside Snowflake</td><td>The Fleet agent</td></tr>
+        <tr><th>fleet gets</th><td>An answer, plus the agent's full run: SQL, rows, chart spec, follow-ups</td><td>SQL, then rows</td></tr>
+        <tr><th>latency*</th><td><strong>~18 s</strong>, one call</td><td><strong>~4 s + ~2 s</strong>, two calls</td></tr>
+        <tr><th>payload*</th><td><strong>~31 KB</strong></td><td><strong>&lt; 1 KB</strong> per call</td></tr>
+        <tr><th>in the trace</th><td>One opaque tool call</td><td>Every step, including the SQL</td></tr>
+        <tr><th>use when</th><td>A governed Cortex Agent is the product, or Snowflake should orchestrate Analyst, Search and charts</td><td>Fleet combines Snowflake with other tools and you want speed, cost control and full traceability</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="foot">* One test question on an XS warehouse. Indicative only. Both patterns read the same semantic view, so metric definitions match.</p>
+</section>
+
+<!-- 7 -->
+<section class="slide" id="s7">
+  <p class="eyebrow">beyond one demo</p>
+  <h2>General-purpose chat across many domains</h2>
+  <p class="lede">Each business domain gets a semantic view, and each Analyst tool covers exactly one view (we tested this). A router picks the right view for each question. The only design choice is where that router lives.</p>
+  <div class="routers">
+    <div class="router">
+      <div class="router-hd"><span class="pat-tag">Pattern B</span><h3>Fleet routes</h3></div>
+      <div class="rflow">
+        <div class="rnode fleet">Fleet agent<span>chooses tools by their descriptions</span></div>
+        <div class="rdown" aria-hidden="true"></div>
+        <div class="rbox">
+          <span class="rbox-lbl">MCP server · up to 50 tools</span>
+          <div class="rtools">
+            <span class="chip">sales_analyst → SALES_SV</span>
+            <span class="chip">supplier_analyst → SUPPLIER_SV</span>
+            <span class="chip">finance_analyst → FINANCE_SV</span>
+            <span class="chip">run_sql</span>
+          </div>
+        </div>
+      </div>
+      <p class="rnote">Fleet's reasoning and every SQL statement are visible in the LangSmith trace.</p>
+    </div>
+    <div class="router">
+      <div class="router-hd"><span class="pat-tag">Pattern A</span><h3>Snowflake routes</h3></div>
+      <div class="rflow">
+        <div class="rnode fleet">Fleet agent<span>sees one tool</span></div>
+        <div class="rdown" aria-hidden="true"></div>
+        <div class="rbox">
+          <span class="rbox-lbl">MCP server · one agent tool</span>
+          <div class="rnode inner">Cortex Agent<span>orchestrates and combines results</span></div>
+          <div class="rtools">
+            <span class="chip">Analyst → SALES_SV</span>
+            <span class="chip">Analyst → SUPPLIER_SV</span>
+            <span class="chip">Analyst → FINANCE_SV</span>
+            <span class="chip">Search → documents</span>
+          </div>
+        </div>
+      </div>
+      <p class="rnote">Tested: asked "customers and suppliers per region", the agent queried both views and combined them (~35 s).</p>
+    </div>
+  </div>
+  <div class="grid cols-3">
+    <div class="card"><h3>One view per domain</h3><p>Define shared dimensions (region, customer, date) the same way in every view so answers line up.</p></div>
+    <div class="card"><h3>No "view of views"</h3><p>The router combines results across domains. Build a broader view only where cross-domain questions are common.</p></div>
+    <div class="card"><h3>Servers are access boundaries</h3><p>Group tools by who may use them. Each user's OAuth role decides which tools succeed.</p></div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide" id="s8">
+  <p class="eyebrow">authentication</p>
+  <h2>OAuth, registered by hand</h2>
+  <p class="lede">Fleet's Auto mode needs dynamic client registration, which Snowflake doesn't support. Manual mode registers the same client on both sides.</p>
+  <div class="handshake">
+    <div class="card">
+      <h3>Snowflake</h3>
+      <p class="small">Security integration</p>
+      <div class="kv">
+        <div><code>TYPE = OAUTH · CONFIDENTIAL</code></div>
+        <div>redirect URI → LangSmith callback</div>
+        <div>allowed roles: <code>FLEET_MCP_ROLE</code></div>
+        <div>secondary roles: <code>NONE</code></div>
+      </div>
+    </div>
+    <div class="swap" aria-hidden="true">⇄</div>
+    <div class="card">
+      <h3>LangSmith</h3>
+      <p class="small">OAuth provider</p>
+      <div class="kv">
+        <div>client ID + secret from Snowflake</div>
+        <div>authorize + token URLs</div>
+        <div>grant: Authorization Code · PKCE on</div>
+        <div>scope: <code>session:role:FLEET_MCP_ROLE</code></div>
+      </div>
+    </div>
+    <div class="swap" aria-hidden="true">⇄</div>
+    <div class="card">
+      <h3>Fleet</h3>
+      <p class="small">MCP connection</p>
+      <div class="kv">
+        <div>server URL</div>
+        <div>OAuth 2.1 (Manual) → pick the provider</div>
+        <div>each user signs in to Snowflake once</div>
+      </div>
+    </div>
+  </div>
+  <p class="small">Admin roles (ACCOUNTADMIN, SECURITYADMIN, ORGADMIN) are blocked from OAuth by default. One integration can serve every MCP server in the account.</p>
+</section>
+
+<!-- 9 -->
+<section class="slide" id="s9">
+  <p class="eyebrow">what we learned</p>
+  <h2>Lessons and production notes</h2>
+  <div class="grid cols-2">
+    <div class="card"><h3>Fix it once in the semantic view</h3><p>For "revenue in 1995", Analyst first filtered on ship date and the agent on order date, giving different totals. One SQL rule in the semantic view fixed it for both.</p></div>
+    <div class="card"><h3>Mind pattern A's payload</h3><p>The agent tool returns its whole run, about 31 KB. Instruct the Fleet agent to use only the final answer.</p></div>
+    <div class="card"><h3>Isolate raw SQL in production</h3><p>Put <code>run_sql</code> on its own server with its own least-privileged role, so it can't bypass an agent's guardrails.</p></div>
+    <div class="card"><h3>Keep roles tight</h3><p>Never grant MCP roles to PUBLIC. Write precise tool descriptions. MCP servers aren't replicated by failover groups, so script them.</p></div>
+  </div>
+  <p class="callout"><strong>Start with B</strong> when Fleet owns the reasoning and you want every step traced. <strong>Use A</strong> where a governed Cortex Agent is the product.</p>
+</section>
+
+</main>
+
+<div class="hud">
+  <span id="count" aria-live="polite">1 / 9</span>
+  <button type="button" id="prev" aria-label="Previous slide">←</button>
+  <button type="button" id="next" aria-label="Next slide">→</button>
+  <button type="button" id="theme" aria-label="Toggle light and dark theme">Theme</button>
+</div>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const count = document.getElementById('count');
+  let current = 0;
+
+  slides.forEach((s, i) => {
+    const n = document.createElement('span');
+    n.className = 'pageno';
+    n.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+    s.appendChild(n);
+  });
+
+  const go = (i) => {
+    current = Math.max(0, Math.min(slides.length - 1, i));
+    slides[current].scrollIntoView({ block: 'start' });
+  };
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        current = slides.indexOf(e.target);
+        count.textContent = (current + 1) + ' / ' + slides.length;
+      }
+    });
+  }, { threshold: 0.55 });
+  slides.forEach((s) => io.observe(s));
+
+  document.getElementById('prev').addEventListener('click', () => go(current - 1));
+  document.getElementById('next').addEventListener('click', () => go(current + 1));
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest && e.target.closest('input, textarea')) return;
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(current + 1); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+  });
+
+  // Dark by default (brand primary); the toggle flips between explicit dark and light.
+  const root = document.documentElement;
+  const stored = (() => { try { return localStorage.getItem('deck-theme'); } catch (_) { return null; } })();
+  if (!root.dataset.theme) root.dataset.theme = stored || 'dark';
+  document.getElementById('theme').addEventListener('click', () => {
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('deck-theme', root.dataset.theme); } catch (_) {}
+  });
+})();
+</script>
+
+</body>
+</html>

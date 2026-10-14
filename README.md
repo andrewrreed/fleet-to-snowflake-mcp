@@ -28,6 +28,15 @@ Patterns we chose not to lead with:
 - **Cortex Search.** An add-on for unstructured documents.
 - **The open-source `Snowflake-Labs/mcp` server.** Deprecated; use the managed server.
 
+## Scaling to many domains
+
+Each `CORTEX_ANALYST_MESSAGE` tool covers **exactly one semantic view**. We tested a YAML list, an `identifiers` key and a comma-separated string, and none of them work. For general-purpose chat across domains, give each business domain its own semantic view, then choose where the routing happens:
+
+- **Fleet routes (pattern B):** put one Analyst tool per semantic view on the server, plus `run_sql`. The Fleet agent picks a tool by its description; a server holds up to 50 tools.
+- **Snowflake routes (pattern A):** use one Cortex Agent with a `cortex_analyst_text_to_sql` tool per semantic view, plus Search. Fleet sees a single tool. In our test, the agent answered "customers and suppliers per region" by querying both views and combining the results (~35 s).
+
+You don't need a "view of views". The router combines results across domains. Build a broader semantic view only where cross-domain questions are common, and define shared dimensions (region, customer, date) the same way in every view. `sql/06_supplier_semantic_view.sql` adds a second domain (`SUPPLIER_SV`) for trying this out.
+
 ## Key concepts
 
 - **Semantic view** (the "semantic layer"): a Snowflake object that maps business terms onto physical tables. It defines tables, joins, dimensions, metrics such as `total_revenue = SUM(price * (1 - discount))`, synonyms, and instructions for SQL generation. Cortex Analyst and Cortex Agents use it to write accurate, consistent SQL. It is **not** a security boundary; RBAC still applies.
@@ -104,7 +113,13 @@ Snowflake does **not** support dynamic client registration, so Fleet's **OAuth 2
    - Authentication: OAuth 2.1 (Manual), with the provider from step 3
    - Save, then sign in to Snowflake and approve.
 
-### 4. Fleet agents
+### 4. Optional: a second domain
+
+```bash
+.venv/bin/python scripts/run_sql.py --role ACCOUNTADMIN sql/06_supplier_semantic_view.sql
+```
+
+### 5. Fleet agents
 
 Create the two agents using the instructions in [`fleet/agent_instructions.md`](fleet/agent_instructions.md), then try the test questions listed there.
 
@@ -138,6 +153,10 @@ USAGE on the MCP server only lets a client connect and list tools. **Each tool n
 - Set `OAUTH_USE_SECONDARY_ROLES = NONE` and a tight `ALLOWED_ROLES_LIST`, and never grant MCP roles to `PUBLIC`.
 - Write precise tool names and descriptions; the Fleet LLM picks tools from them.
 - MCP servers are not replicated by failover groups. Recreate them with the same scripts in the secondary account.
+
+## Slides
+
+`slides/fleet-snowflake-deck.html` is a 9-slide deck covering the concepts, the architecture, the demo script, the pattern comparison, scaling and OAuth. Open it in a browser and use the arrow keys or space to advance; the button in the corner switches between light and dark themes.
 
 ## Teardown
 
