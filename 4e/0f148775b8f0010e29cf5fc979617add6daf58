@@ -1,0 +1,24 @@
+slides/fleet-snowflake-deck.html
+  s_ed242ae73a705b::t_5a7d9529b99094 1-423
+README.md
+  s_ed242ae73a705b::t_efe55e43383723 31-39,116-122,157-159
+  s_ed242ae73a705b::t_a3b73e10f6bb90 160
+sql/06_supplier_semantic_view.sql
+  s_ed242ae73a705b::t_c5f563423272d0 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4e0f148775b8f0010e29cf5fc979617add6daf58",
+  "prompts": {},
+  "sessions": {
+    "s_ed242ae73a705b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "da9c0988-00ef-4066-94e4-0420b9fd711f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andrew Reed <andrew.reed.r@gmail.com>"
+    }
+  }
+}
