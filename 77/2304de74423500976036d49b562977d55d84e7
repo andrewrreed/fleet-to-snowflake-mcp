@@ -1,0 +1,43 @@
+.env.example
+  s_ed242ae73a705b::t_7b87ce483ebd32 1-9
+.gitignore
+  s_ed242ae73a705b::t_8832a32a7d0525 1-16
+README.md
+  s_ed242ae73a705b::t_724035fd9e133c 1-156
+scripts/sf.py
+  s_ed242ae73a705b::t_b01b3ef2d3bc43 1-54
+sql/01_setup.sql
+  s_ed242ae73a705b::t_0cc3afde02ae59 1-33
+sql/02_semantic_view.sql
+  s_ed242ae73a705b::t_1854088df37d7e 1-54
+sql/05_oauth.sql
+  s_ed242ae73a705b::t_f86c8d27c72c88 1-22
+sql/99_teardown.sql
+  s_ed242ae73a705b::t_f3f5e7177ac9e6 1-8
+fleet/agent_instructions.md
+  s_ed242ae73a705b::t_ff4e616ffcf90f 1-28
+scripts/mcp_smoke_test.py
+  s_ed242ae73a705b::t_0d2e0792c09888 1-130
+scripts/run_sql.py
+  s_ed242ae73a705b::t_9a8cc180e0356b 1-70
+sql/03_agent.sql
+  s_ed242ae73a705b::t_a54c4f6054654f 1-33
+sql/04_mcp_server.sql
+  s_ed242ae73a705b::t_0b123ddb1d83b0 1-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "772304de74423500976036d49b562977d55d84e7",
+  "prompts": {},
+  "sessions": {
+    "s_ed242ae73a705b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "da9c0988-00ef-4066-94e4-0420b9fd711f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Andrew Reed <andrew.reed.r@gmail.com>"
+    }
+  }
+}
