@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+*.p8
+*.pem
+*.key
+*.crt
+credentials.json
+.venv/
+__pycache__/
+.DS_Store
+
+# Internal working notes (kept locally, not published)
+PLAN.md
+LEARNINGS.md
+CLAUDE.md
